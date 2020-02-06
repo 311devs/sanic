@@ -197,14 +197,6 @@ class HttpProtocol(asyncio.Protocol):
                 response.output(
                     self.request.version, keep_alive,
                     self.request_timeout))
-            if self.has_log:
-                netlog.info('', extra={
-                    'status': response.status,
-                    'byte': len(response.body),
-                    'host': '%s' % self.request.ip,
-                    'request': '%s %s' % (self.request.method,
-                                          self.request.url)
-                })
         except AttributeError:
             log.error(
                 ('Invalid response object for url {}, '
@@ -238,14 +230,6 @@ class HttpProtocol(asyncio.Protocol):
             response.transport = self.transport
             await response.stream(
                 self.request.version, keep_alive, self.request_timeout)
-            if self.has_log:
-                netlog.info('', extra={
-                    'status': response.status,
-                    'byte': -1,
-                    'host': '%s:%d' % self.request.ip,
-                    'request': '%s %s' % (self.request.method,
-                                          self.request.url)
-                })
         except AttributeError:
             log.error(
                 ('Invalid response object for url {}, '
@@ -281,21 +265,6 @@ class HttpProtocol(asyncio.Protocol):
                 "Writing error failed, connection closed {}".format(repr(e)),
                 from_error=True)
         finally:
-            if self.has_log:
-                extra = {
-                    'status': response.status,
-                    'host': '',
-                    'request': str(self.request) + str(self.url)
-                }
-                if response and isinstance(response, HTTPResponse):
-                    extra['byte'] = len(response.body)
-                else:
-                    extra['byte'] = -1
-                if self.request:
-                    extra['host'] = '%s:%d' % self.request.ip,
-                    extra['request'] = '%s %s' % (self.request.method,
-                                                  self.url)
-                netlog.info('', extra=extra)
             self.transport.close()
 
     def bail_out(self, message, from_error=False):
